@@ -209,9 +209,8 @@ public class HunspellDictionary {
         wordForm = NOFLAGS;
         entry = line;
       } else {
-        wordForm = new HunspellWord();
-        wordForm.flags = line.substring(flagSep + 1).toCharArray();
-        Arrays.sort(wordForm.flags);
+        wordForm = new HunspellWord(line.substring(flagSep + 1).toCharArray());
+        Arrays.sort(wordForm.getFlags());
         entry = line.substring(0, flagSep);
       }
       
