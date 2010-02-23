@@ -21,7 +21,23 @@ import java.util.Arrays;
 
 public class HunspellWord {
   
-  char flags[]; // sorted, can we represent more concisely?
+  private final char flags[]; // sorted, can we represent more concisely?
+
+  /**
+   * Creates a new HunspellWord with no associated flags
+   */
+  public HunspellWord() {
+    flags = null;
+  }
+
+  /**
+   * Constructs a new HunspellWord with the given flags
+   *
+   * @param flags Flags to associate with the word
+   */
+  public HunspellWord(char[] flags) {
+    this.flags = flags;
+  }
 
   /**
    * Checks whether the word has the given flag associated with it
@@ -31,5 +47,16 @@ public class HunspellWord {
    */
   public boolean hasFlag(char flag) {
     return flags != null && Arrays.binarySearch(flags, flag) >= 0;
+  }
+
+  // ================================================= Getters / Setters =============================================
+
+  /**
+   * Returns the flags associated with the word
+   *
+   * @return Flags asssociated with the word
+   */
+  public char[] getFlags() {
+    return flags;
   }
 }
