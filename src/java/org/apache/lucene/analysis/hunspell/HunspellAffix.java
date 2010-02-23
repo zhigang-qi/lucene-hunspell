@@ -19,9 +19,13 @@ package org.apache.lucene.analysis.hunspell;
 
 import java.util.regex.Pattern;
 
+/**
+ * Wrapper class representing a hunspell affix
+ */
 public class HunspellAffix {
-  private String append; /* the affix itself, what is appended */
-  private char appendFlags[]; /* continuation class flags */
+
+  private String append; // the affix itself, what is appended
+  private char appendFlags[]; // continuation class flags
   private String strip;
   
   private String condition;
@@ -30,58 +34,91 @@ public class HunspellAffix {
   private boolean crossProduct;
   
   private Pattern conditionPattern;
-  
+
   /**
-   * @return the append
+   * Checks whether the String defined by the provided char array, offset and length, meets the condition of this affix
+   *
+   * @param input Char array where the String will be created from
+   * @param offset Offset in the char array the String will start at
+   * @param length Number of characters from the offset that define the String
+   * @return {@code true} if the String meets the condition, {@code false} otherwise
+   */
+  public boolean checkCondition(char input[], int offset, int length) {
+    // XXX
+    StringBuilder builder = new StringBuilder();
+    builder.append(input, offset, length);
+    return conditionPattern.matcher(builder).matches();
+  }
+
+  // ================================================= Getters / Setters =============================================
+
+  /**
+   * Returns the append defined for the affix
+   *
+   * @return Defined append
    */
   public String getAppend() {
     return append;
   }
 
   /**
-   * @param append the append to set
+   * Sets the append defined for the affix
+   *
+   * @param append Defined append for the affix
    */
   public void setAppend(String append) {
     this.append = append;
   }
 
   /**
-   * @return the appendFlags
+   * Returns the flags defined for the affix append
+   *
+   * @return Flags defined for the affix append
    */
   public char[] getAppendFlags() {
     return appendFlags;
   }
 
   /**
-   * @param appendFlags the appendFlags to set
+   * Sets the flags defined for the affix append
+   *
+   * @param appendFlags Flags defined for the affix append
    */
   public void setAppendFlags(char[] appendFlags) {
     this.appendFlags = appendFlags;
   }
 
   /**
-   * @return the strip
+   * Returns the stripping characters defined for the affix
+   *
+   * @return Stripping characters defined for the affix
    */
   public String getStrip() {
     return strip;
   }
 
   /**
-   * @param strip the strip to set
+   * Sets the stripping characters defined for the affix
+   *
+   * @param strip Stripping characters defined for the affix
    */
   public void setStrip(String strip) {
     this.strip = strip;
   }
 
   /**
-   * @return the condition
+   * Returns the condition that must be met before the affix can be applied
+   *
+   * @return Condition that must be met before the affix can be applied
    */
   public String getCondition() {
     return condition;
   }
 
   /**
-   * @param condition the condition to set
+   * Sets the condition that must be met before the affix can be applied
+   *
+   * @param condition Condition to be met before affix application
    */
   public void setCondition(String condition) {
     this.condition = condition;
@@ -89,37 +126,38 @@ public class HunspellAffix {
   }
 
   /**
-   * @return the flag
+   * Returns the affix flag
+   *
+   * @return Affix flag
    */
   public char getFlag() {
     return flag;
   }
 
   /**
-   * @param flag the flag to set
+   * Sets the affix flag
+   *
+   * @param flag Affix flag
    */
   public void setFlag(char flag) {
     this.flag = flag;
   }
 
   /**
-   * @return the crossProduct
+   * Returns whether the affix is defined as cross product
+   *
+   * @return {@code true} if the affix is cross product, {@code false} otherwise
    */
   public boolean isCrossProduct() {
     return crossProduct;
   }
 
   /**
-   * @param crossProduct the crossProduct to set
+   * Sets whether the affix is defined as cross product
+   *
+   * @param crossProduct Whether the affix is defined as cross product
    */
   public void setCrossProduct(boolean crossProduct) {
     this.crossProduct = crossProduct;
-  }
-  
-  public boolean checkCondition(char input[], int offset, int length) {
-    // XXX
-    StringBuilder builder = new StringBuilder();
-    builder.append(input, offset, length);
-    return conditionPattern.matcher(builder).matches();
   }
 }
