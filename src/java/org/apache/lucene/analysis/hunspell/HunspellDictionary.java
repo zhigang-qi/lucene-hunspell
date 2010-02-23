@@ -34,12 +34,12 @@ import org.apache.lucene.util.Version;
 
 public class HunspellDictionary {
 
-  static final HunspellStem NOFLAGS = new HunspellStem();
+  static final HunspellWord NOFLAGS = new HunspellWord();
   
   private static final String PREFIX_KEY = "PFX";
   private static final String SUFFIX_KEY = "SFX";
 
-  private CharArrayMap<List<HunspellStem>> words;
+  private CharArrayMap<List<HunspellWord>> words;
   private CharArrayMap<List<HunspellAffix>> prefixes;
   private CharArrayMap<List<HunspellAffix>> suffixes;
 
@@ -59,7 +59,7 @@ public class HunspellDictionary {
     readDictionaryFile(dictionary, decoder);
   }
 
-  public List<HunspellStem> lookupWord(char word[], int offset, int length) {
+  public List<HunspellWord> lookupWord(char word[], int offset, int length) {
     return words.get(word, offset, length);
   }
 
@@ -197,25 +197,27 @@ public class HunspellDictionary {
     // nocommit, don't create millions of strings.
     String line = reader.readLine(); // first line is number of entries
     int numEntries = Integer.parseInt(line);
-    words = new CharArrayMap<List<HunspellStem>>(Version.LUCENE_31, numEntries, false);
+    words = new CharArrayMap<List<HunspellWord>>(Version.LUCENE_31, numEntries, false);
     // nocommit, the flags themselves can be double-chars (long) or also numeric
     // either way the trick is to encode them as char... but they must be parsed differently
     while ((line = reader.readLine()) != null) {
       String entry;
-      HunspellStem wordForm;
+      HunspellWord wordForm;
+      
       int flagSep = line.lastIndexOf('/');
       if (flagSep == -1) {
         wordForm = NOFLAGS;
         entry = line;
       } else {
-        wordForm = new HunspellStem();
+        wordForm = new HunspellWord();
         wordForm.flags = line.substring(flagSep + 1).toCharArray();
         Arrays.sort(wordForm.flags);
         entry = line.substring(0, flagSep);
       }
-      List<HunspellStem> entries = words.get(entry);
+      
+      List<HunspellWord> entries = words.get(entry);
       if (entries == null) {
-        entries = new ArrayList<HunspellStem>();
+        entries = new ArrayList<HunspellWord>();
         words.put(entry, entries);
       }
       entries.add(wordForm);
