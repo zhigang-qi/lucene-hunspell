@@ -19,10 +19,17 @@ package org.apache.lucene.analysis.hunspell;
 
 import java.util.Arrays;
 
-public class HunspellStem {
-  char flags[]; // sorted, can we represent more concisely?
+public class HunspellWord {
   
-  public boolean hasFlag(char ch) {
-    return flags != null && Arrays.binarySearch(flags, ch) >= 0;
+  char flags[]; // sorted, can we represent more concisely?
+
+  /**
+   * Checks whether the word has the given flag associated with it
+   *
+   * @param flag Flag to check whether it is associated with the word
+   * @return {@code true} if the flag is associated, {@code false} otherwise
+   */
+  public boolean hasFlag(char flag) {
+    return flags != null && Arrays.binarySearch(flags, flag) >= 0;
   }
 }
