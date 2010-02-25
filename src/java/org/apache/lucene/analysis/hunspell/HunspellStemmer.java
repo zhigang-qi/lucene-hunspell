@@ -62,7 +62,8 @@ public class HunspellStemmer {
       if (suffixes != null) {
         for (HunspellAffix suffix : suffixes) {
           if (hasCrossCheckedFlag(suffix.getFlag(), flags)) {
-            stems.addAll(applySuffix(array, suffix));
+            int deAffixedLength = array.length - suffix.getAppend().length();
+            stems.addAll(applyAffix(array, 0, deAffixedLength, suffix));
           }
         }
       }
@@ -73,7 +74,9 @@ public class HunspellStemmer {
       if (prefixes != null) {
         for (HunspellAffix prefix : prefixes) {
           if (hasCrossCheckedFlag(prefix.getFlag(), flags)) {
-            stems.addAll(applyPrefix(array, prefix));
+            int deAffixedStart = prefix.getAppend().length();
+            int deAffixedLength = array.length - deAffixedStart;
+            stems.addAll(applyAffix(array, deAffixedStart, deAffixedLength, prefix));
           }
         }
       }
@@ -83,15 +86,12 @@ public class HunspellStemmer {
   }
 
   @SuppressWarnings("unchecked")
-  private List<String> applyPrefix(char[] word, HunspellAffix prefix) {
-    int deAffixStart = prefix.getAppend().length();
-    int deAffixLength = word.length - deAffixStart;
-
-    if (!prefix.checkCondition(word, deAffixStart, deAffixLength)) {
+  public List<String> applyAffix(char[] word, int deAffixedStart, int deAffixedLength, HunspellAffix affix) {
+    if (!affix.checkCondition(word, deAffixedStart, deAffixedLength)) {
       return Collections.EMPTY_LIST;
     }
 
-    List<HunspellWord> words = dictionary.lookupWord(word, deAffixStart, deAffixLength);
+    List<HunspellWord> words = dictionary.lookupWord(word, deAffixedStart, deAffixedLength);
     if (words == null) {
       return Collections.EMPTY_LIST;
     }
@@ -99,49 +99,16 @@ public class HunspellStemmer {
     List<String> stems = new ArrayList<String>();
 
     for (HunspellWord hunspellWord : words) {
-      if (hunspellWord.hasFlag(prefix.getFlag())) {
-        if (prefix.isCrossProduct()) {
-          List<String> recursiveStems = stem(new String(word, deAffixStart, deAffixLength), prefix.getAppendFlags());
+      if (hunspellWord.hasFlag(affix.getFlag())) {
+        if (affix.isCrossProduct()) {
+          List<String> recursiveStems = stem(new String(word, deAffixedStart, deAffixedLength), affix.getAppendFlags());
           if (!recursiveStems.isEmpty()) {
             stems.addAll(recursiveStems);
           } else {
-            stems.add(new String(word, deAffixStart, deAffixLength));
+            stems.add(new String(word, deAffixedStart, deAffixedLength));
           }
         } else {
-          stems.add(new String(word, deAffixStart, deAffixLength));
-        }
-      }
-    }
-
-    return stems;
-  }
-
-  @SuppressWarnings("unchecked")
-  private List<String> applySuffix(char[] word, HunspellAffix suffix) {
-    int deAffixLength = word.length - suffix.getAppend().length();
-    
-    if (!suffix.checkCondition(word, 0, deAffixLength)) {
-      return Collections.EMPTY_LIST;
-    }
-    
-    List<HunspellWord> words = dictionary.lookupWord(word, 0, deAffixLength);
-    if (words == null) {
-      return Collections.EMPTY_LIST;
-    }
-
-    List<String> stems = new ArrayList<String>();
-
-    for (HunspellWord hunspellWord : words) {
-      if (hunspellWord.hasFlag(suffix.getFlag())) {
-        if (suffix.isCrossProduct()) {
-          List<String> recursiveStems = stem(new String(word, 0, deAffixLength), suffix.getAppendFlags());
-          if (!recursiveStems.isEmpty()) {
-            stems.addAll(recursiveStems);
-          } else {
-            stems.add(new String(word, 0, deAffixLength));
-          }
-        } else {
-          stems.add(new String(word, 0, deAffixLength));
+          stems.add(new String(word, deAffixedStart, deAffixedLength));
         }
       }
     }
