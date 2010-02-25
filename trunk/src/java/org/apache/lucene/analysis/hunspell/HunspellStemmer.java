@@ -1,11 +1,5 @@
 package org.apache.lucene.analysis.hunspell;
 
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.text.ParseException;
-import java.util.*;
-
 /**
  * Licensed to the Apache Software Foundation (ASF) under one or more
  * contributor license agreements.  See the NOTICE file distributed with
@@ -23,7 +17,16 @@ import java.util.*;
  * limitations under the License.
  */
 
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.text.ParseException;
+import java.util.*;
+
 /**
+ * HunspellStemmer uses the affix rules declared in the HunspellDictionary to generate one or more stems for a word.  It
+ * conforms to the algorithm in the original hunspell algorithm, including recursive suffix stripping.
+ * 
  * @author Chris Male
  */
 public class HunspellStemmer {
@@ -51,7 +54,14 @@ public class HunspellStemmer {
 
   // ================================================= Helper Methods ================================================
 
-  public List<String> stem(String word, char[] flags) {
+  /**
+   * Generates a list of stems for the provided word
+   *
+   * @param word Word to generate the stems for
+   * @param flags Flags from a previous stemming step that need to be cross-checked with any affixes in this recursive step
+   * @return List of stems, pr an empty if no stems are found
+   */
+  private List<String> stem(String word, char[] flags) {
     char[] array = word.toCharArray();
 
     List<String> stems = new ArrayList<String>();
@@ -84,6 +94,15 @@ public class HunspellStemmer {
     return stems;
   }
 
+  /**
+   * Applies the affix rule to the given word, producing a list of stems if any are found
+   *
+   * @param word Char array containing the word before the affix stripping occurs
+   * @param deAffixedStart Index of the start of the array once the affix has been stripped
+   * @param deAffixedLength Length of the word in the array once the affix has been stripped
+   * @param affix HunspellAffix representing the affix rule itself
+   * @return List of stems for the word, or an empty list if none are found
+   */
   @SuppressWarnings("unchecked")
   public List<String> applyAffix(char[] word, int deAffixedStart, int deAffixedLength, HunspellAffix affix) {
     if (!affix.checkCondition(word, deAffixedStart, deAffixedLength)) {
@@ -115,12 +134,26 @@ public class HunspellStemmer {
     return stems;
   }
 
+  /**
+   * Checks if the given flag cross checks with the given array of flags
+   *
+   * @param flag Flag to cross check with the array of flags
+   * @param flags Array of flags to cross check against.  Can be {@code null}
+   * @return {@code true} if the flag is found in the array or the array is {@code null}, {@code false} otherwise
+   */
   private boolean hasCrossCheckedFlag(char flag, char[] flags) {
     return flags == null || Arrays.binarySearch(flags, flag) >= 0;
   }
 
   // ================================================= Entry Point ===================================================
 
+  /**
+   * HunspellStemmer entry point.  Accepts two arguments: location of affix file and location of dic file
+   *
+   * @param args Program arguments.  Should contain location of affix file and location of dic file
+   * @throws IOException Can be thrown while reading from the files
+   * @throws ParseException Can be thrown while parsing the files
+   */
   public static void main(String[] args) throws IOException, ParseException {
     if (args.length != 2) {
       System.out.println("usage: HunspellStemmer <affix location> <dic location>");
