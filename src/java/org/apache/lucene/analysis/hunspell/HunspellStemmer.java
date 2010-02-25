@@ -100,7 +100,7 @@ public class HunspellStemmer {
     for (HunspellWord hunspellWord : words) {
       if (hunspellWord.hasFlag(prefix.getFlag())) {
         if (prefix.isCrossProduct()) {
-          List<String> recursiveStems = stem(new String(word, deAffixStart, word.length - deAffixStart), prefix.getAppendFlags());
+          List<String> recursiveStems = stem(new String(word, deAffixStart, deAffixLength), prefix.getAppendFlags());
           if (!recursiveStems.isEmpty()) {
             stems.addAll(recursiveStems);
           } else {
