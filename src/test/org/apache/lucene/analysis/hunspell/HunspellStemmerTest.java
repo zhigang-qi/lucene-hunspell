@@ -34,6 +34,11 @@ public class HunspellStemmerTest {
     assertEquals(1, stems.size());
     assertEquals("move", stems.get(0));
 
+    stems = stemmer.stem("drinkables");
+
+    assertEquals(1, stems.size());
+    assertEquals("drink", stems.get(0));
+
     affixStream.close();
     dictStream.close();
   }
