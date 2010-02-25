@@ -23,8 +23,8 @@ public class HunspellDictionaryTest {
    */
   @Test
   public void testHunspellDictionary_loadEnUSDict() throws IOException, ParseException {
-    InputStream affixStream = Thread.currentThread().getContextClassLoader().getResourceAsStream("dicts/en_US/en_US.aff");
-    InputStream dictStream = Thread.currentThread().getContextClassLoader().getResourceAsStream("dicts/en_US/en_US.dic");
+    InputStream affixStream = getClass().getResourceAsStream("/dicts/en_US/en_US.aff");
+    InputStream dictStream = getClass().getResourceAsStream("/dicts/en_US/en_US.dic");
 
     HunspellDictionary dictionary = new HunspellDictionary(affixStream, dictStream);
 
