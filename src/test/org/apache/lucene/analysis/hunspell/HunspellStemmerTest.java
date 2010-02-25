@@ -5,6 +5,9 @@ import org.junit.Test;
 import java.io.IOException;
 import java.io.InputStream;
 import java.text.ParseException;
+import java.util.List;
+
+import static org.junit.Assert.assertEquals;
 
 /**
  * Tests for {@link org.apache.lucene.analysis.hunspell.HunspellStemmer}
@@ -21,7 +24,10 @@ public class HunspellStemmerTest {
     HunspellDictionary dictionary = new HunspellDictionary(affixStream, dictStream);
 
     HunspellStemmer stemmer = new HunspellStemmer(dictionary);
-    stemmer.stem("drinkable");
+    List<String> stems = stemmer.stem("drinkable");
+
+    assertEquals(1, stems.size());
+    assertEquals("drink", stems.get(0));
 
     affixStream.close();
     dictStream.close();
