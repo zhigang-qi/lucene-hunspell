@@ -32,8 +32,9 @@ public class HunspellStemmerTest {
     HunspellStemmer stemmer = new HunspellStemmer(dictionary);
     List<String> stems = stemmer.stem("drinkable");
 
-    assertEquals(1, stems.size());
-    assertEquals("drink", stems.get(0));
+    assertEquals(2, stems.size());
+    assertEquals("drinkable", stems.get(0));
+    assertEquals("drink", stems.get(1));
 
     affixStream.close();
     dictStream.close();
@@ -80,6 +81,65 @@ public class HunspellStemmerTest {
 
     assertEquals(1, stems.size());
     assertEquals("drink", stems.get(0));
+
+    affixStream.close();
+    dictStream.close();
+  }
+
+  /**
+   * Pass condition: Word 'fietsen' should be stemmed to 'fiets' ('en' suffix stripped) while fiets should be stemmed to
+   *                 itself
+   *
+   * @throws IOException Can be thrown while reading the files
+   * @throws ParseException Can be thrown while parsing the files
+   */
+  @Test
+  public void testStem_fietsenFietsNlNL() throws IOException, ParseException {
+    InputStream affixStream = Thread.currentThread().getContextClassLoader().getResourceAsStream("dicts/nl_NL/nl_NL.aff");
+    InputStream dictStream = Thread.currentThread().getContextClassLoader().getResourceAsStream("dicts/nl_NL/nl_NL.dic");
+
+    HunspellDictionary dictionary = new HunspellDictionary(affixStream, dictStream);
+
+    HunspellStemmer stemmer = new HunspellStemmer(dictionary);
+    List<String> stems = stemmer.stem("fietsen");
+
+    assertEquals(2, stems.size());
+    assertEquals("fietsen", stems.get(0));
+    assertEquals("fiets", stems.get(1));
+
+    stems = stemmer.stem("fiets");
+    assertEquals(1, stems.size());
+    assertEquals("fiets", stems.get(0));
+
+    affixStream.close();
+    dictStream.close();
+  }
+
+  /**
+   * Pass condition: Word 'huizen' should be stemmed to 'huis' ('en' suffix stripped) while huis should be stemmed to huis
+   *                 and hui
+   *
+   * @throws IOException Can be thrown while reading the files
+   * @throws ParseException Can be thrown while parsing the files
+   */
+  @Test
+  public void testStem_huizenHuisNlNL() throws IOException, ParseException {
+    InputStream affixStream = Thread.currentThread().getContextClassLoader().getResourceAsStream("dicts/nl_NL/nl_NL.aff");
+    InputStream dictStream = Thread.currentThread().getContextClassLoader().getResourceAsStream("dicts/nl_NL/nl_NL.dic");
+
+    HunspellDictionary dictionary = new HunspellDictionary(affixStream, dictStream);
+
+    HunspellStemmer stemmer = new HunspellStemmer(dictionary);
+    List<String> stems = stemmer.stem("huizen");
+
+    assertEquals(2, stems.size());
+    assertEquals("huizen", stems.get(0));
+    assertEquals("huis", stems.get(1));
+
+    stems = stemmer.stem("huis");
+    assertEquals(2, stems.size());
+    assertEquals("huis", stems.get(0));
+    assertEquals("hui", stems.get(1));
 
     affixStream.close();
     dictStream.close();
