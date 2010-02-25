@@ -31,5 +31,8 @@ public class HunspellDictionaryTest {
     assertEquals(2, dictionary.lookupSuffix(new char[]{'i', 'n', 'g', 's'}, 0, 4).size());
     assertEquals(1, dictionary.lookupPrefix(new char[]{'i', 'n'}, 0, 2).size());
     assertEquals(1, dictionary.lookupWord(new char[]{'d', 'r', 'i', 'n', 'k'}, 0, 5).size());
+
+    affixStream.close();
+    dictStream.close();
   }
 }
