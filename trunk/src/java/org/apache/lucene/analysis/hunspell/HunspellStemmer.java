@@ -51,7 +51,6 @@ public class HunspellStemmer {
 
   // ================================================= Helper Methods ================================================
 
-  // TODO (cmale) replace word with a char array + index + offset
   public List<String> stem(String word, char[] flags) {
     char[] array = word.toCharArray();
 
