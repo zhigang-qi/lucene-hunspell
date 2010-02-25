@@ -7,6 +7,8 @@ import java.io.InputStream;
 import java.text.ParseException;
 
 /**
+ * Tests for {@link org.apache.lucene.analysis.hunspell.HunspellStemmer}
+ * 
  * @author Chris Male
  */
 public class HunspellStemmerTest {

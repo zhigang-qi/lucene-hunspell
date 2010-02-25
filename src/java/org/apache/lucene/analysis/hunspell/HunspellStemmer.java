@@ -1,6 +1,12 @@
 package org.apache.lucene.analysis.hunspell;
 
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.text.ParseException;
+import java.util.Arrays;
 import java.util.List;
+import java.util.Scanner;
 
 /**
  * Licensed to the Apache Software Foundation (ASF) under one or more
@@ -44,36 +50,107 @@ public class HunspellStemmer {
    */
   public void stem(String word) {
     System.out.println("stem(" + word + ")");
+    stem(word, null);
+  }
+
+  // ================================================= Helper Methods ================================================
+
+  public void stem(String word, char[] flags) {
     char[] array = word.toCharArray();
-    
+
     for (int i = 0; i < array.length; i++) {
       List<HunspellAffix> suffixes = dictionary.lookupSuffix(array, i, array.length - i);
       if (suffixes != null) {
-        for (HunspellAffix affix : suffixes) {
-          applySuffix(array, affix);
+        for (HunspellAffix suffix : suffixes) {
+          if (hasCrossCheckedFlag(suffix.getFlag(), flags)) {
+            applySuffix(array, suffix);
+          }
+        }
+      }
+    }
+
+    for (int i = array.length - 1; i >= 0; i--) {
+      List<HunspellAffix> prefixes = dictionary.lookupPrefix(array, 0, i);
+      if (prefixes != null) {
+        for (HunspellAffix prefix : prefixes) {
+          if (hasCrossCheckedFlag(prefix.getFlag(), flags)) {
+            applyPrefix(array, prefix);
+          }
         }
       }
     }
   }
 
-  // ================================================= Helper Methods ================================================
+  private void applyPrefix(char[] word, HunspellAffix prefix) {
+    int deAffixStart = prefix.getAppend().length();
 
-  private void applySuffix(char[] word, HunspellAffix affix) {
-    int deAffixLength = word.length - affix.getAppend().length();
+    if (!prefix.checkCondition(word, deAffixStart, word.length - deAffixStart)) {
+      return;
+    }
+
+    List<HunspellWord> words = dictionary.lookupWord(word, deAffixStart, word.length - deAffixStart);
+    if (words == null) {
+      return;
+    }
+
+    for (HunspellWord hunspellWord : words) {
+      if (hunspellWord.hasFlag(prefix.getFlag())) {
+        System.out.println("Found stem " + prefix.getAppend() + "+ " + new String(word, deAffixStart, word.length - deAffixStart));
+      }
+    }
+  }
+
+  private void applySuffix(char[] word, HunspellAffix suffix) {
+    int deAffixLength = word.length - suffix.getAppend().length();
     
-    if (!affix.checkCondition(word, 0, deAffixLength)) {
+    if (!suffix.checkCondition(word, 0, deAffixLength)) {
       return;
     }
     
-    List<HunspellWord> words = dictionary.lookupWord(word, 0, word.length - affix.getAppend().length());
+    List<HunspellWord> words = dictionary.lookupWord(word, 0, deAffixLength);
     if (words == null) {
       return;
     }
     
     for (HunspellWord hunspellWord : words) {
-      if (hunspellWord.hasFlag(affix.getFlag())) {
-        System.out.println("Found stem " + new String(word, 0, word.length - affix.getAppend().length()));
+      if (hunspellWord.hasFlag(suffix.getFlag())) {
+        System.out.println("Found stem " + new String(word, 0, deAffixLength) + " +" + suffix.getAppend());
+        if (suffix.isCrossProduct()) {
+          System.out.println("Can check stem further...");
+          stem(new String(word, 0, deAffixLength), suffix.getAppendFlags());
+        }
       }
+    }
+  }
+
+  private boolean hasCrossCheckedFlag(char flag, char[] flags) {
+    return flags == null || Arrays.binarySearch(flags, flag) >= 0;
+  }
+
+  // ================================================= Entry Point ===================================================
+
+  public static void main(String[] args) throws IOException, ParseException {
+    if (args.length != 2) {
+      System.out.println("usage: HunspellStemmer <affix location> <dic location>");
+    }
+
+    InputStream affixInputStream = new FileInputStream(args[0]);
+    InputStream dicInputStream = new FileInputStream(args[1]);
+
+    HunspellDictionary dictionary = new HunspellDictionary(affixInputStream, dicInputStream);
+
+    affixInputStream.close();
+    dicInputStream.close();
+    
+    HunspellStemmer stemmer = new HunspellStemmer(dictionary);
+
+    Scanner scanner = new Scanner(System.in);
+    
+    System.out.print("> ");
+    while (scanner.hasNextLine()) {
+      String word = scanner.nextLine();
+      stemmer.stem(word);
+      System.out.print("> ");
     }
   }
 }
