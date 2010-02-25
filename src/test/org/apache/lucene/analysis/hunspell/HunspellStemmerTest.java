@@ -24,8 +24,8 @@ public class HunspellStemmerTest {
    */
   @Test
   public void testStem_simpleSuffixEnUS() throws IOException, ParseException {
-    InputStream affixStream = Thread.currentThread().getContextClassLoader().getResourceAsStream("dicts/en_US/en_US.aff");
-    InputStream dictStream = Thread.currentThread().getContextClassLoader().getResourceAsStream("dicts/en_US/en_US.dic");
+    InputStream affixStream = getClass().getResourceAsStream("/dicts/en_US/en_US.aff");
+    InputStream dictStream = getClass().getResourceAsStream("/dicts/en_US/en_US.dic");
 
     HunspellDictionary dictionary = new HunspellDictionary(affixStream, dictStream);
 
@@ -48,8 +48,8 @@ public class HunspellStemmerTest {
    */
   @Test
   public void testStem_simplePrefixEnUS() throws IOException, ParseException {
-    InputStream affixStream = Thread.currentThread().getContextClassLoader().getResourceAsStream("dicts/en_US/en_US.aff");
-    InputStream dictStream = Thread.currentThread().getContextClassLoader().getResourceAsStream("dicts/en_US/en_US.dic");
+    InputStream affixStream = getClass().getResourceAsStream("/dicts/en_US/en_US.aff");
+    InputStream dictStream = getClass().getResourceAsStream("/dicts/en_US/en_US.dic");
 
     HunspellDictionary dictionary = new HunspellDictionary(affixStream, dictStream);
 
@@ -71,8 +71,8 @@ public class HunspellStemmerTest {
    */
   @Test
   public void testStem_recursiveSuffixEnUS() throws IOException, ParseException {
-    InputStream affixStream = Thread.currentThread().getContextClassLoader().getResourceAsStream("dicts/en_US/en_US.aff");
-    InputStream dictStream = Thread.currentThread().getContextClassLoader().getResourceAsStream("dicts/en_US/en_US.dic");
+    InputStream affixStream = getClass().getResourceAsStream("/dicts/en_US/en_US.aff");
+    InputStream dictStream = getClass().getResourceAsStream("/dicts/en_US/en_US.dic");
 
     HunspellDictionary dictionary = new HunspellDictionary(affixStream, dictStream);
 
@@ -95,8 +95,8 @@ public class HunspellStemmerTest {
    */
   @Test
   public void testStem_fietsenFietsNlNL() throws IOException, ParseException {
-    InputStream affixStream = Thread.currentThread().getContextClassLoader().getResourceAsStream("dicts/nl_NL/nl_NL.aff");
-    InputStream dictStream = Thread.currentThread().getContextClassLoader().getResourceAsStream("dicts/nl_NL/nl_NL.dic");
+    InputStream affixStream = getClass().getResourceAsStream("/dicts/nl_NL/nl_NL.aff");
+    InputStream dictStream = getClass().getResourceAsStream("/dicts/nl_NL/nl_NL.dic");
 
     HunspellDictionary dictionary = new HunspellDictionary(affixStream, dictStream);
 
@@ -124,8 +124,8 @@ public class HunspellStemmerTest {
    */
   @Test
   public void testStem_huizenHuisNlNL() throws IOException, ParseException {
-    InputStream affixStream = Thread.currentThread().getContextClassLoader().getResourceAsStream("dicts/nl_NL/nl_NL.aff");
-    InputStream dictStream = Thread.currentThread().getContextClassLoader().getResourceAsStream("dicts/nl_NL/nl_NL.dic");
+    InputStream affixStream = getClass().getResourceAsStream("/dicts/nl_NL/nl_NL.aff");
+    InputStream dictStream = getClass().getResourceAsStream("/dicts/nl_NL/nl_NL.dic");
 
     HunspellDictionary dictionary = new HunspellDictionary(affixStream, dictStream);
 
