@@ -49,7 +49,12 @@ public class HunspellStemmer {
    * @return List of stems for the word
    */
   public List<String> stem(String word) {
-    return stem(word, null);
+    List<String> stems = new ArrayList<String>();
+    if (dictionary.lookupWord(word.toCharArray(), 0, word.length()) != null) {
+      stems.add(word);
+    }
+    stems.addAll(stem(word, null));
+    return stems;
   }
 
   // ================================================= Helper Methods ================================================
@@ -72,7 +77,8 @@ public class HunspellStemmer {
         for (HunspellAffix suffix : suffixes) {
           if (hasCrossCheckedFlag(suffix.getFlag(), flags)) {
             int deAffixedLength = array.length - suffix.getAppend().length();
-            stems.addAll(applyAffix(array, 0, deAffixedLength, suffix));
+            String strippedWord = new StringBuilder().append(array, 0, deAffixedLength).append(suffix.getStrip()).toString();
+            stems.addAll(applyAffix(strippedWord, suffix));
           }
         }
       }
@@ -85,7 +91,11 @@ public class HunspellStemmer {
           if (hasCrossCheckedFlag(prefix.getFlag(), flags)) {
             int deAffixedStart = prefix.getAppend().length();
             int deAffixedLength = array.length - deAffixedStart;
-            stems.addAll(applyAffix(array, deAffixedStart, deAffixedLength, prefix));
+
+            String strippedWord = new StringBuilder().append(prefix.getStrip())
+                .append(array, deAffixedStart, deAffixedLength)
+                .toString();
+            stems.addAll(applyAffix(strippedWord, prefix));
           }
         }
       }
@@ -97,19 +107,19 @@ public class HunspellStemmer {
   /**
    * Applies the affix rule to the given word, producing a list of stems if any are found
    *
-   * @param word Char array containing the word before the affix stripping occurs
-   * @param deAffixedStart Index of the start of the array once the affix has been stripped
-   * @param deAffixedLength Length of the word in the array once the affix has been stripped
+   * @param strippedWord Word the affix has been removed and the strip added
    * @param affix HunspellAffix representing the affix rule itself
    * @return List of stems for the word, or an empty list if none are found
    */
   @SuppressWarnings("unchecked")
-  public List<String> applyAffix(char[] word, int deAffixedStart, int deAffixedLength, HunspellAffix affix) {
-    if (!affix.checkCondition(word, deAffixedStart, deAffixedLength)) {
+  public List<String> applyAffix(String strippedWord, HunspellAffix affix) {
+    char[] word = strippedWord.toCharArray();
+
+    if (!affix.checkCondition(word, 0, word.length)) {
       return Collections.EMPTY_LIST;
     }
 
-    List<HunspellWord> words = dictionary.lookupWord(word, deAffixedStart, deAffixedLength);
+    List<HunspellWord> words = dictionary.lookupWord(word, 0, word.length);
     if (words == null) {
       return Collections.EMPTY_LIST;
     }
@@ -119,14 +129,14 @@ public class HunspellStemmer {
     for (HunspellWord hunspellWord : words) {
       if (hunspellWord.hasFlag(affix.getFlag())) {
         if (affix.isCrossProduct()) {
-          List<String> recursiveStems = stem(new String(word, deAffixedStart, deAffixedLength), affix.getAppendFlags());
+          List<String> recursiveStems = stem(strippedWord, affix.getAppendFlags());
           if (!recursiveStems.isEmpty()) {
             stems.addAll(recursiveStems);
           } else {
-            stems.add(new String(word, deAffixedStart, deAffixedLength));
+            stems.add(strippedWord);
           }
         } else {
-          stems.add(new String(word, deAffixedStart, deAffixedLength));
+          stems.add(strippedWord);
         }
       }
     }
