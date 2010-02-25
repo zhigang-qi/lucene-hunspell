@@ -1,5 +1,7 @@
 package org.apache.lucene.analysis.hunspell;
 
+import java.util.List;
+
 /**
  * Licensed to the Apache Software Foundation (ASF) under one or more
  * contributor license agreements.  See the NOTICE file distributed with
@@ -41,10 +43,37 @@ public class HunspellStemmer {
    * TODO (cmale) decide what this is going to return
    */
   public void stem(String word) {
+    System.out.println("stem(" + word + ")");
+    char[] array = word.toCharArray();
     
+    for (int i = 0; i < array.length; i++) {
+      List<HunspellAffix> suffixes = dictionary.lookupSuffix(array, i, array.length - i);
+      if (suffixes != null) {
+        for (HunspellAffix affix : suffixes) {
+          applySuffix(array, affix);
+        }
+      }
+    }
   }
 
   // ================================================= Helper Methods ================================================
 
-  
+  private void applySuffix(char[] word, HunspellAffix affix) {
+    int deAffixLength = word.length - affix.getAppend().length();
+    
+    if (!affix.checkCondition(word, 0, deAffixLength)) {
+      return;
+    }
+    
+    List<HunspellWord> words = dictionary.lookupWord(word, 0, word.length - affix.getAppend().length());
+    if (words == null) {
+      return;
+    }
+    
+    for (HunspellWord hunspellWord : words) {
+      if (hunspellWord.hasFlag(affix.getFlag())) {
+        System.out.println("Found stem " + new String(word, 0, word.length - affix.getAppend().length()));
+      }
+    }
+  }
 }
