@@ -29,11 +29,11 @@ public class HunspellAffix {
   private String strip;
   
   private String condition;
+  private Pattern conditionPattern;
   
   private char flag;
+
   private boolean crossProduct;
-  
-  private Pattern conditionPattern;
 
   /**
    * Checks whether the String defined by the provided char array, offset and length, meets the condition of this affix
