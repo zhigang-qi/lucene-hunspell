@@ -284,7 +284,7 @@ public class HunspellStemmer {
    * @param stems Stems of the word
    */
   private static void printStemResults(String originalWord, List<Stem> stems) {
-    StringBuilder builder = new StringBuilder().append("stem(").append(originalWord).append(")");
+    StringBuilder builder = new StringBuilder().append("stem(").append(originalWord).append(")").append("\n");
 
     for (Stem stem : stems) {
       builder.append("- ").append(stem.getStem()).append(": ");
