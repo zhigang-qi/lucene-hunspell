@@ -48,10 +48,10 @@ public class HunspellStemmer {
    * @param word Word to find the stems for
    * @return List of stems for the word
    */
-  public List<String> stem(String word) {
-    List<String> stems = new ArrayList<String>();
+  public List<Stem> stem(String word) {
+    List<Stem> stems = new ArrayList<Stem>();
     if (dictionary.lookupWord(word.toCharArray(), 0, word.length()) != null) {
-      stems.add(word);
+      stems.add(new Stem(word));
     }
     stems.addAll(stem(word, null));
     return stems;
@@ -66,10 +66,10 @@ public class HunspellStemmer {
    * @param flags Flags from a previous stemming step that need to be cross-checked with any affixes in this recursive step
    * @return List of stems, pr an empty if no stems are found
    */
-  private List<String> stem(String word, char[] flags) {
+  private List<Stem> stem(String word, char[] flags) {
     char[] array = word.toCharArray();
 
-    List<String> stems = new ArrayList<String>();
+    List<Stem> stems = new ArrayList<Stem>();
 
     for (int i = 0; i < array.length; i++) {
       List<HunspellAffix> suffixes = dictionary.lookupSuffix(array, i, array.length - i);
@@ -78,7 +78,13 @@ public class HunspellStemmer {
           if (hasCrossCheckedFlag(suffix.getFlag(), flags)) {
             int deAffixedLength = array.length - suffix.getAppend().length();
             String strippedWord = new StringBuilder().append(array, 0, deAffixedLength).append(suffix.getStrip()).toString();
-            stems.addAll(applyAffix(strippedWord, suffix));
+
+            List<Stem> stemList = applyAffix(strippedWord, suffix);
+            for (Stem stem : stemList) {
+              stem.addSuffix(suffix);
+            }
+
+            stems.addAll(stemList);
           }
         }
       }
@@ -95,7 +101,13 @@ public class HunspellStemmer {
             String strippedWord = new StringBuilder().append(prefix.getStrip())
                 .append(array, deAffixedStart, deAffixedLength)
                 .toString();
-            stems.addAll(applyAffix(strippedWord, prefix));
+
+            List<Stem> stemList = applyAffix(strippedWord, prefix);
+            for (Stem stem : stemList) {
+              stem.addPrefix(prefix);  
+            }
+
+            stems.addAll(stemList);
           }
         }
       }
@@ -112,7 +124,7 @@ public class HunspellStemmer {
    * @return List of stems for the word, or an empty list if none are found
    */
   @SuppressWarnings("unchecked")
-  public List<String> applyAffix(String strippedWord, HunspellAffix affix) {
+  public List<Stem> applyAffix(String strippedWord, HunspellAffix affix) {
     char[] word = strippedWord.toCharArray();
 
     if (!affix.checkCondition(word, 0, word.length)) {
@@ -124,19 +136,19 @@ public class HunspellStemmer {
       return Collections.EMPTY_LIST;
     }
 
-    List<String> stems = new ArrayList<String>();
+    List<Stem> stems = new ArrayList<Stem>();
 
     for (HunspellWord hunspellWord : words) {
       if (hunspellWord.hasFlag(affix.getFlag())) {
         if (affix.isCrossProduct()) {
-          List<String> recursiveStems = stem(strippedWord, affix.getAppendFlags());
+          List<Stem> recursiveStems = stem(strippedWord, affix.getAppendFlags());
           if (!recursiveStems.isEmpty()) {
             stems.addAll(recursiveStems);
           } else {
-            stems.add(strippedWord);
+            stems.add(new Stem(strippedWord));
           }
         } else {
-          stems.add(strippedWord);
+          stems.add(new Stem(strippedWord));
         }
       }
     }
@@ -154,6 +166,76 @@ public class HunspellStemmer {
   private boolean hasCrossCheckedFlag(char flag, char[] flags) {
     return flags == null || Arrays.binarySearch(flags, flag) >= 0;
   }
+
+  // ================================================= Helper Methods ================================================
+
+  /**
+   * Stem represents all information known about a stem of a word.  This includes the stem, and the prefixes and suffixes
+   * that were used to change the word into the stem.
+   */
+  public static class Stem {
+
+    private final List<HunspellAffix> prefixes = new ArrayList<HunspellAffix>();
+    private final List<HunspellAffix> suffixes = new ArrayList<HunspellAffix>();
+    private final String stem;
+
+    /**
+     * Creates a new Stem wrapping the given word stem
+     *
+     * @param stem Stem of a word
+     */
+    public Stem(String stem) {
+      this.stem = stem;
+    }
+
+    /**
+     * Adds a prefix to the list of prefixes used to generate this stem.  Because it is assumed that prefixes are added
+     * depth first, the prefix is added to the front of the list
+     *
+     * @param prefix Prefix to add to the list of prefixes for this stem
+     */
+    public void addPrefix(HunspellAffix prefix) {
+      prefixes.add(0, prefix);
+    }
+
+    /**
+     * Adds a suffix to the list of suffixes used to generate this stem.  Because it is assumed that suffixes are added
+     * depth first, the suffix is added to the end of the list
+     *
+     * @param suffix Suffix to add to the list of suffixes for this stem
+     */
+    public void addSuffix(HunspellAffix suffix) {
+      suffixes.add(suffix);
+    }
+
+    /**
+     * Returns the list of prefixes used to generate the stem
+     *
+     * @return List of prefixes used to generate the stem or an empty list if no prefixes were required
+     */
+    public List<HunspellAffix> getPrefixes() {
+      return prefixes;
+    }
+
+    /**
+     * Returns the list of suffixes used to generate the stem
+     *
+     * @return List of suffixes used to generate the stem or an empty list if no suffixes were required
+     */
+    public List<HunspellAffix> getSuffixes() {
+      return suffixes;
+    }
+
+    /**
+     * Returns the actual word stem itself
+     *
+     * @return Word stem itself
+     */
+    public String getStem() {
+      return stem;
+    }
+  }
+
 
   // ================================================= Entry Point ===================================================
 
@@ -184,15 +266,59 @@ public class HunspellStemmer {
     System.out.print("> ");
     while (scanner.hasNextLine()) {
       String word = scanner.nextLine();
+      
       if ("exit".equals(word)) {
         break;
       }
-      System.out.println("stem(" + word + ")");
-      List<String> stems = stemmer.stem(word);
-      for (String stem : stems) {
-        System.out.println("- " + stem);
-      }
+
+      printStemResults(word, stemmer.stem(word));
+      
       System.out.print("> ");
     }
+  }
+
+  /**
+   * Prints the results of the stemming of a word
+   *
+   * @param originalWord Word that has been stemmed
+   * @param stems Stems of the word
+   */
+  private static void printStemResults(String originalWord, List<Stem> stems) {
+    StringBuilder builder = new StringBuilder().append("stem(").append(originalWord).append(")");
+
+    for (Stem stem : stems) {
+      builder.append("- ").append(stem.getStem()).append(": ");
+
+      for (HunspellAffix prefix : stem.getPrefixes()) {
+        builder.append(prefix.getAppend()).append("+");
+
+        if (hasText(prefix.getStrip())) {
+          builder.append(prefix.getStrip()).append("-");
+        }
+      }
+
+      builder.append(stem.getStem());
+
+      for (HunspellAffix suffix : stem.getSuffixes()) {
+        if (hasText(suffix.getStrip())) {
+          builder.append("-").append(suffix.getStrip());
+        }
+        
+        builder.append("+").append(suffix.getAppend());
+      }
+      builder.append("\n");
+    }
+
+    System.out.println(builder);
+  }
+
+  /**
+   * Simple utility to check if the given String has any text
+   *
+   * @param str String to check if it has any text
+   * @return {@code true} if the String has text, {@code false} otherwise
+   */
+  private static boolean hasText(String str) {
+    return str != null && str.length() > 0;
   }
 }

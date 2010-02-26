@@ -24,20 +24,14 @@ public class HunspellStemmerTest {
    */
   @Test
   public void testStem_simpleSuffixEnUS() throws IOException, ParseException {
-    InputStream affixStream = getClass().getResourceAsStream("/dicts/en_US/en_US.aff");
-    InputStream dictStream = getClass().getResourceAsStream("/dicts/en_US/en_US.dic");
-
-    HunspellDictionary dictionary = new HunspellDictionary(affixStream, dictStream);
+    HunspellDictionary dictionary = loadDictionary("/dicts/en_US/en_US.aff", "/dicts/en_US/en_US.dic");
 
     HunspellStemmer stemmer = new HunspellStemmer(dictionary);
-    List<String> stems = stemmer.stem("drinkable");
+    List<HunspellStemmer.Stem> stems = stemmer.stem("drinkable");
 
     assertEquals(2, stems.size());
-    assertEquals("drinkable", stems.get(0));
-    assertEquals("drink", stems.get(1));
-
-    affixStream.close();
-    dictStream.close();
+    assertEquals("drinkable", stems.get(0).getStem());
+    assertEquals("drink", stems.get(1).getStem());
   }
 
   /**
@@ -48,19 +42,13 @@ public class HunspellStemmerTest {
    */
   @Test
   public void testStem_simplePrefixEnUS() throws IOException, ParseException {
-    InputStream affixStream = getClass().getResourceAsStream("/dicts/en_US/en_US.aff");
-    InputStream dictStream = getClass().getResourceAsStream("/dicts/en_US/en_US.dic");
-
-    HunspellDictionary dictionary = new HunspellDictionary(affixStream, dictStream);
+    HunspellDictionary dictionary = loadDictionary("/dicts/en_US/en_US.aff", "/dicts/en_US/en_US.dic");
 
     HunspellStemmer stemmer = new HunspellStemmer(dictionary);
-    List<String> stems = stemmer.stem("remove");
+    List<HunspellStemmer.Stem> stems = stemmer.stem("remove");
 
     assertEquals(1, stems.size());
-    assertEquals("move", stems.get(0));
-    
-    affixStream.close();
-    dictStream.close();
+    assertEquals("move", stems.get(0).getStem());
   }
 
   /**
@@ -71,19 +59,13 @@ public class HunspellStemmerTest {
    */
   @Test
   public void testStem_recursiveSuffixEnUS() throws IOException, ParseException {
-    InputStream affixStream = getClass().getResourceAsStream("/dicts/en_US/en_US.aff");
-    InputStream dictStream = getClass().getResourceAsStream("/dicts/en_US/en_US.dic");
-
-    HunspellDictionary dictionary = new HunspellDictionary(affixStream, dictStream);
+    HunspellDictionary dictionary = loadDictionary("/dicts/en_US/en_US.aff", "/dicts/en_US/en_US.dic");
 
     HunspellStemmer stemmer = new HunspellStemmer(dictionary);
-    List<String> stems = stemmer.stem("drinkables");
+    List<HunspellStemmer.Stem> stems = stemmer.stem("drinkables");
 
     assertEquals(1, stems.size());
-    assertEquals("drink", stems.get(0));
-
-    affixStream.close();
-    dictStream.close();
+    assertEquals("drink", stems.get(0).getStem());
   }
 
   /**
@@ -95,24 +77,18 @@ public class HunspellStemmerTest {
    */
   @Test
   public void testStem_fietsenFietsNlNL() throws IOException, ParseException {
-    InputStream affixStream = getClass().getResourceAsStream("/dicts/nl_NL/nl_NL.aff");
-    InputStream dictStream = getClass().getResourceAsStream("/dicts/nl_NL/nl_NL.dic");
-
-    HunspellDictionary dictionary = new HunspellDictionary(affixStream, dictStream);
+    HunspellDictionary dictionary = loadDictionary("/dicts/nl_NL/nl_NL.aff", "/dicts/nl_NL/nl_NL.dic");
 
     HunspellStemmer stemmer = new HunspellStemmer(dictionary);
-    List<String> stems = stemmer.stem("fietsen");
+    List<HunspellStemmer.Stem> stems = stemmer.stem("fietsen");
 
     assertEquals(2, stems.size());
-    assertEquals("fietsen", stems.get(0));
-    assertEquals("fiets", stems.get(1));
+    assertEquals("fietsen", stems.get(0).getStem());
+    assertEquals("fiets", stems.get(1).getStem());
 
     stems = stemmer.stem("fiets");
     assertEquals(1, stems.size());
-    assertEquals("fiets", stems.get(0));
-
-    affixStream.close();
-    dictStream.close();
+    assertEquals("fiets", stems.get(0).getStem());
   }
 
   /**
@@ -124,26 +100,42 @@ public class HunspellStemmerTest {
    */
   @Test
   public void testStem_huizenHuisNlNL() throws IOException, ParseException {
-    InputStream affixStream = getClass().getResourceAsStream("/dicts/nl_NL/nl_NL.aff");
-    InputStream dictStream = getClass().getResourceAsStream("/dicts/nl_NL/nl_NL.dic");
-
-    HunspellDictionary dictionary = new HunspellDictionary(affixStream, dictStream);
+    HunspellDictionary dictionary = loadDictionary("/dicts/nl_NL/nl_NL.aff", "/dicts/nl_NL/nl_NL.dic");
 
     HunspellStemmer stemmer = new HunspellStemmer(dictionary);
-    List<String> stems = stemmer.stem("huizen");
+    List<HunspellStemmer.Stem> stems = stemmer.stem("huizen");
 
     assertEquals(2, stems.size());
-    assertEquals("huizen", stems.get(0));
-    assertEquals("huis", stems.get(1));
+    assertEquals("huizen", stems.get(0).getStem());
+    assertEquals("huis", stems.get(1).getStem());
 
     stems = stemmer.stem("huis");
     assertEquals(2, stems.size());
-    assertEquals("huis", stems.get(0));
-    assertEquals("hui", stems.get(1));
+    assertEquals("huis", stems.get(0).getStem());
+    assertEquals("hui", stems.get(1).getStem());
+  }
+
+  // ================================================= Helper Methods ================================================
+
+  /**
+   * Loads the HunspellDictionary created from the affix and dic files found at the given path on the classpath
+   *
+   * @param affixFile Location of the affix file on the classpath
+   * @param dicFile Location of the dic file on the classpath
+   * @return HunspellDictionary created by loading and parsing the files
+   * @throws IOException Can be thrown while loading the files
+   * @throws ParseException Can be thrown while parsing the files
+   */
+  private HunspellDictionary loadDictionary(String affixFile, String dicFile) throws IOException, ParseException {
+    InputStream affixStream = getClass().getResourceAsStream(affixFile);
+    InputStream dictStream = getClass().getResourceAsStream(dicFile);
+
+    HunspellDictionary dictionary = new HunspellDictionary(affixStream, dictStream);
 
     affixStream.close();
     dictStream.close();
-  }
 
+    return dictionary;
+  }
 
 }
