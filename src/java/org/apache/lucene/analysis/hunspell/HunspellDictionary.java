@@ -35,6 +35,9 @@ public class HunspellDictionary {
   private static final String PREFIX_KEY = "PFX";
   private static final String SUFFIX_KEY = "SFX";
 
+  private static final String PREFIX_CONDITION_REGEX_PATTERN = "%s.*";
+  private static final String SUFFIX_CONDITION_REGEX_PATTERN = ".*%s";
+  
   private CharArrayMap<List<HunspellWord>> words;
   private CharArrayMap<List<HunspellAffix>> prefixes;
   private CharArrayMap<List<HunspellAffix>> suffixes;
@@ -55,14 +58,38 @@ public class HunspellDictionary {
     readDictionaryFile(dictionary, decoder);
   }
 
+  /**
+   * Looks up HunspellWords that match the String created from the given char array, offset and length
+   *
+   * @param word Char array to generate the String from
+   * @param offset Offset in the char array that the String starts at
+   * @param length Length from the offset that the String is
+   * @return List of HunspellWords that match the generated String, or {@code null} if none are found
+   */
   public List<HunspellWord> lookupWord(char word[], int offset, int length) {
     return words.get(word, offset, length);
   }
 
+  /**
+   * Looks up HunspellAffix prefixes that have an append that matches the String created from the given char array, offset and length
+   *
+   * @param word Char array to generate the String from
+   * @param offset Offset in the char array that the String starts at
+   * @param length Length from the offset that the String is
+   * @return List of HunspellAffix prefixes with an append that matches the String, or {@code null} if none are found
+   */
   public List<HunspellAffix> lookupPrefix(char word[], int offset, int length) {
     return prefixes.get(word, offset, length);
   }
 
+  /**
+   * Looks up HunspellAffix suffixes that have an append that matches the String created from the given char array, offset and length
+   *
+   * @param word Char array to generate the String from
+   * @param offset Offset in the char array that the String starts at
+   * @param length Length from the offset that the String is
+   * @return List of HunspellAffix suffixes with an append that matches the String, or {@code null} if none are found
+   */
   public List<HunspellAffix> lookupSuffix(char word[], int offset, int length) {
     return suffixes.get(word, offset, length);
   }
@@ -84,9 +111,9 @@ public class HunspellDictionary {
     String line = null;
     while ((line = reader.readLine()) != null) {
       if (line.startsWith(PREFIX_KEY)) {
-        parseAffix(prefixes, line, reader);
+        parseAffix(prefixes, line, reader, PREFIX_CONDITION_REGEX_PATTERN);
       } else if (line.startsWith(SUFFIX_KEY)) {
-        parseAffix(suffixes, line, reader);
+        parseAffix(suffixes, line, reader, SUFFIX_CONDITION_REGEX_PATTERN);
       }
     }
     reader.close();
@@ -98,11 +125,14 @@ public class HunspellDictionary {
    * @param affixes Map where the result of the parsing will be put
    * @param header Header line of the affix rule
    * @param reader BufferedReader to read the content of the rule from
+   * @param conditionPattern {@link String#format(String, Object...)} pattern to be used to generate the condition regex
+   *                         pattern
    * @throws IOException Can be thrown while reading the rule
    */
   private void parseAffix(CharArrayMap<List<HunspellAffix>> affixes,
                           String header,
-                          BufferedReader reader) throws IOException {
+                          BufferedReader reader,
+                          String conditionPattern) throws IOException {
     String args[] = header.split("\\s+");
 
     boolean crossProduct = args[2].equals("Y");
@@ -129,7 +159,9 @@ public class HunspellDictionary {
         affix.setAppend(affixArg);
       }
 
-      affix.setCondition(ruleArgs[4]);
+
+      String condition = ruleArgs[4];
+      affix.setCondition(condition, String.format(conditionPattern, condition));
       affix.setCrossProduct(crossProduct);
       
       List<HunspellAffix> list = affixes.get(affix.getAppend());
@@ -177,8 +209,8 @@ public class HunspellDictionary {
    * @return CharSetDecoder for the given encoding
    */
   private CharsetDecoder getJavaEncoding(String encoding) {
-    Charset cs = Charset.forName(encoding);
-    return cs.newDecoder();
+    Charset charset = Charset.forName(encoding);
+    return charset.newDecoder();
   }
 
   /**

@@ -119,10 +119,11 @@ public class HunspellAffix {
    * Sets the condition that must be met before the affix can be applied
    *
    * @param condition Condition to be met before affix application
+   * @param pattern Condition as a regular expression pattern
    */
-  public void setCondition(String condition) {
+  public void setCondition(String condition, String pattern) {
     this.condition = condition;
-    this.conditionPattern = Pattern.compile(".*" + condition);
+    this.conditionPattern = Pattern.compile(pattern);
   }
 
   /**
