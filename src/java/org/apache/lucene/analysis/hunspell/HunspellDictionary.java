@@ -34,13 +34,19 @@ public class HunspellDictionary {
   
   private static final String PREFIX_KEY = "PFX";
   private static final String SUFFIX_KEY = "SFX";
-
+  private static final String FLAG_KEY = "FLAG";
+  
   private static final String PREFIX_CONDITION_REGEX_PATTERN = "%s.*";
   private static final String SUFFIX_CONDITION_REGEX_PATTERN = ".*%s";
-  
+
   private CharArrayMap<List<HunspellWord>> words;
   private CharArrayMap<List<HunspellAffix>> prefixes;
   private CharArrayMap<List<HunspellAffix>> suffixes;
+
+  private FlagParsingStrategy flagParsingStrategy = new SimpleFlagParsingStrategy(); // Default flag parsing strategy
+  private static final String NUM_FLAG_TYPE = "num";
+  private static final String UTF8_FLAG_TYPE = "UTF-8";
+  private static final String LONG_FLAG_TYPE = "long";
 
   /**
    * Creates a new HunspellDictionary containing the information read from the provided InputStreams to hunspell affix
@@ -114,6 +120,10 @@ public class HunspellDictionary {
         parseAffix(prefixes, line, reader, PREFIX_CONDITION_REGEX_PATTERN);
       } else if (line.startsWith(SUFFIX_KEY)) {
         parseAffix(suffixes, line, reader, SUFFIX_CONDITION_REGEX_PATTERN);
+      } else if (line.startsWith(FLAG_KEY)) {
+        // Assume that the FLAG line comes before any prefix or suffixes
+        // Store the strategy so it can be used when parsing the dic file
+        flagParsingStrategy = getFlagParsingStrategy(line);
       }
     }
     reader.close();
@@ -144,14 +154,14 @@ public class HunspellDictionary {
 
       HunspellAffix affix = new HunspellAffix();
       
-      affix.setFlag(ruleArgs[1].charAt(0));
+      affix.setFlag(flagParsingStrategy.parseFlag(ruleArgs[1]));
       affix.setStrip(ruleArgs[2].equals("0") ? "" : ruleArgs[2]);
 
       String affixArg = ruleArgs[3];
       
       int flagSep = affixArg.lastIndexOf('/');
       if (flagSep != -1) {
-        char appendFlags[] = affixArg.substring(flagSep + 1).toCharArray();
+        char appendFlags[] = flagParsingStrategy.parseFlags(affixArg.substring(flagSep + 1));
         Arrays.sort(appendFlags);
         affix.setAppendFlags(appendFlags);
         affix.setAppend(affixArg.substring(0, flagSep));
@@ -214,6 +224,26 @@ public class HunspellDictionary {
   }
 
   /**
+   * Determines the appropriate {@link FlagParsingStrategy} based on the FLAG definiton line taken from the affix file
+   *
+   * @param flagLine Line containing the flag information
+   * @return FlagParsingStrategy that handles parsing flags in the way specified in the FLAG definiton
+   */
+  private FlagParsingStrategy getFlagParsingStrategy(String flagLine) {
+    String flagType = flagLine.substring(5);
+
+    if (NUM_FLAG_TYPE.equals(flagType)) {
+      return new NumFlagParsingStrategy();
+    } else if (UTF8_FLAG_TYPE.equals(flagType)) {
+      return new SimpleFlagParsingStrategy();
+    } else if (LONG_FLAG_TYPE.equals(flagType)) {
+      return new DoubleASCIIFlagParsingStrategy();
+    }
+
+    throw new IllegalArgumentException("Unknown flag type: " + flagType);
+  }
+
+  /**
    * Reads the dictionary file through the provided InputStream, building up the words map
    *
    * @param dictionary InputStream to read the dictionary file through
@@ -237,7 +267,7 @@ public class HunspellDictionary {
         wordForm = NOFLAGS;
         entry = line;
       } else {
-        wordForm = new HunspellWord(line.substring(flagSep + 1).toCharArray());
+        wordForm = new HunspellWord(flagParsingStrategy.parseFlags(line.substring(flagSep + 1)));
         Arrays.sort(wordForm.getFlags());
         entry = line.substring(0, flagSep);
       }
@@ -248,6 +278,91 @@ public class HunspellDictionary {
         words.put(entry, entries);
       }
       entries.add(wordForm);
+    }
+  }
+
+  // ================================================= Inner Classes =================================================
+
+  /**
+   * Abstraction of the process of parsing flags taken from the affix and dic files
+   */
+  private static interface FlagParsingStrategy {
+
+    /**
+     * Parses the given String into a single flag
+     *
+     * @param rawFlag String to parse into a flag
+     * @return Parsed flag
+     */
+    char parseFlag(String rawFlag);
+
+    /**
+     * Parses the given String into multiple flags
+     *
+     * @param rawFlags String to parse into flags
+     * @return Parsed flags
+     */
+    char[] parseFlags(String rawFlags);
+  }
+
+  /**
+   * Simple implementation of {@link FlagParsingStrategy} that treats the chars in each String as a individual flags.
+   * Can be used with both the ASCII and UTF-8 flag types.
+   */
+  private static class SimpleFlagParsingStrategy implements FlagParsingStrategy {
+
+    /**
+     * {@inheritDoc}
+     */
+    public char parseFlag(String rawFlag) {
+      return rawFlag.charAt(0);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    public char[] parseFlags(String rawFlags) {
+      return rawFlags.toCharArray();
+    }
+  }
+
+  /**
+   * Implementation of {@link FlagParsingStrategy} that assumes each flag is encoded in its numerical form.  In the case
+   * of multiple flags, each number is separated by a comma.
+   */
+  private static class NumFlagParsingStrategy implements FlagParsingStrategy {
+
+    /**
+     * {@inheritDoc}
+     */
+    public char parseFlag(String rawFlag) {
+      return (char) Integer.parseInt(rawFlag);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    public char[] parseFlags(String rawFlags) {
+      String[] rawFlagParts = rawFlags.split(",");
+      char[] flags = new char[rawFlagParts.length];
+
+      for (int i = 0; i < rawFlagParts.length; i++) {
+        flags[i] = (char) Integer.parseInt(rawFlagParts[i]);
+      }
+
+      return flags;
+    }
+  }
+
+  // TODO (cmale) rmuir to implement
+  private static class DoubleASCIIFlagParsingStrategy implements FlagParsingStrategy {
+
+    public char parseFlag(String rawFlag) {
+      throw new UnsupportedOperationException("Not yet implemented by rmuir");
+    }
+
+    public char[] parseFlags(String rawFlags) {
+      throw new UnsupportedOperationException("Not yet implemented by rmuir");
     }
   }
 
