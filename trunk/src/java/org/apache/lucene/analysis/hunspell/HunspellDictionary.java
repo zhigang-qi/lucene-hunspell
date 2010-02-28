@@ -35,6 +35,10 @@ public class HunspellDictionary {
   private static final String PREFIX_KEY = "PFX";
   private static final String SUFFIX_KEY = "SFX";
   private static final String FLAG_KEY = "FLAG";
+
+  private static final String NUM_FLAG_TYPE = "num";
+  private static final String UTF8_FLAG_TYPE = "UTF-8";
+  private static final String LONG_FLAG_TYPE = "long";
   
   private static final String PREFIX_CONDITION_REGEX_PATTERN = "%s.*";
   private static final String SUFFIX_CONDITION_REGEX_PATTERN = ".*%s";
@@ -44,9 +48,7 @@ public class HunspellDictionary {
   private CharArrayMap<List<HunspellAffix>> suffixes;
 
   private FlagParsingStrategy flagParsingStrategy = new SimpleFlagParsingStrategy(); // Default flag parsing strategy
-  private static final String NUM_FLAG_TYPE = "num";
-  private static final String UTF8_FLAG_TYPE = "UTF-8";
-  private static final String LONG_FLAG_TYPE = "long";
+
 
   /**
    * Creates a new HunspellDictionary containing the information read from the provided InputStreams to hunspell affix
