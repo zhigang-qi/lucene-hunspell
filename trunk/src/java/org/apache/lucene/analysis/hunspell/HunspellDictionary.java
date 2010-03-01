@@ -288,7 +288,7 @@ public class HunspellDictionary {
   /**
    * Abstraction of the process of parsing flags taken from the affix and dic files
    */
-  private static interface FlagParsingStrategy {
+  private static abstract class FlagParsingStrategy {
 
     /**
      * Parses the given String into a single flag
@@ -296,7 +296,9 @@ public class HunspellDictionary {
      * @param rawFlag String to parse into a flag
      * @return Parsed flag
      */
-    char parseFlag(String rawFlag);
+    char parseFlag(String rawFlag) {
+      return parseFlags(rawFlag)[0];
+    }
 
     /**
      * Parses the given String into multiple flags
@@ -304,22 +306,14 @@ public class HunspellDictionary {
      * @param rawFlags String to parse into flags
      * @return Parsed flags
      */
-    char[] parseFlags(String rawFlags);
+    abstract char[] parseFlags(String rawFlags);
   }
 
   /**
    * Simple implementation of {@link FlagParsingStrategy} that treats the chars in each String as a individual flags.
    * Can be used with both the ASCII and UTF-8 flag types.
    */
-  private static class SimpleFlagParsingStrategy implements FlagParsingStrategy {
-
-    /**
-     * {@inheritDoc}
-     */
-    public char parseFlag(String rawFlag) {
-      return rawFlag.charAt(0);
-    }
-
+  private static class SimpleFlagParsingStrategy extends FlagParsingStrategy {
     /**
      * {@inheritDoc}
      */
@@ -332,15 +326,7 @@ public class HunspellDictionary {
    * Implementation of {@link FlagParsingStrategy} that assumes each flag is encoded in its numerical form.  In the case
    * of multiple flags, each number is separated by a comma.
    */
-  private static class NumFlagParsingStrategy implements FlagParsingStrategy {
-
-    /**
-     * {@inheritDoc}
-     */
-    public char parseFlag(String rawFlag) {
-      return (char) Integer.parseInt(rawFlag);
-    }
-
+  private static class NumFlagParsingStrategy extends FlagParsingStrategy {
     /**
      * {@inheritDoc}
      */
@@ -357,12 +343,7 @@ public class HunspellDictionary {
   }
 
   // TODO (cmale) rmuir to implement
-  private static class DoubleASCIIFlagParsingStrategy implements FlagParsingStrategy {
-
-    public char parseFlag(String rawFlag) {
-      throw new UnsupportedOperationException("Not yet implemented by rmuir");
-    }
-
+  private static class DoubleASCIIFlagParsingStrategy extends FlagParsingStrategy {
     public char[] parseFlags(String rawFlags) {
       throw new UnsupportedOperationException("Not yet implemented by rmuir");
     }

@@ -24,7 +24,7 @@ public class HunspellStemmerTest {
    */
   @Test
   public void testStem_simpleSuffixEnUS() throws IOException, ParseException {
-    HunspellDictionary dictionary = loadDictionary("/dicts/en_US/en_US.aff", "/dicts/en_US/en_US.dic");
+    HunspellDictionary dictionary = loadDictionary("dicts/en_US/en_US.aff", "dicts/en_US/en_US.dic");
 
     HunspellStemmer stemmer = new HunspellStemmer(dictionary);
     List<HunspellStemmer.Stem> stems = stemmer.stem("drinkable");
@@ -42,7 +42,7 @@ public class HunspellStemmerTest {
    */
   @Test
   public void testStem_simplePrefixEnUS() throws IOException, ParseException {
-    HunspellDictionary dictionary = loadDictionary("/dicts/en_US/en_US.aff", "/dicts/en_US/en_US.dic");
+    HunspellDictionary dictionary = loadDictionary("dicts/en_US/en_US.aff", "dicts/en_US/en_US.dic");
 
     HunspellStemmer stemmer = new HunspellStemmer(dictionary);
     List<HunspellStemmer.Stem> stems = stemmer.stem("remove");
@@ -59,7 +59,7 @@ public class HunspellStemmerTest {
    */
   @Test
   public void testStem_recursiveSuffixEnUS() throws IOException, ParseException {
-    HunspellDictionary dictionary = loadDictionary("/dicts/en_US/en_US.aff", "/dicts/en_US/en_US.dic");
+    HunspellDictionary dictionary = loadDictionary("dicts/en_US/en_US.aff", "dicts/en_US/en_US.dic");
 
     HunspellStemmer stemmer = new HunspellStemmer(dictionary);
     List<HunspellStemmer.Stem> stems = stemmer.stem("drinkables");
@@ -77,7 +77,7 @@ public class HunspellStemmerTest {
    */
   @Test
   public void testStem_fietsenFietsNlNL() throws IOException, ParseException {
-    HunspellDictionary dictionary = loadDictionary("/dicts/nl_NL/nl_NL.aff", "/dicts/nl_NL/nl_NL.dic");
+    HunspellDictionary dictionary = loadDictionary("dicts/nl_NL/nl_NL.aff", "dicts/nl_NL/nl_NL.dic");
 
     HunspellStemmer stemmer = new HunspellStemmer(dictionary);
     List<HunspellStemmer.Stem> stems = stemmer.stem("fietsen");
@@ -100,7 +100,7 @@ public class HunspellStemmerTest {
    */
   @Test
   public void testStem_huizenHuisNlNL() throws IOException, ParseException {
-    HunspellDictionary dictionary = loadDictionary("/dicts/nl_NL/nl_NL.aff", "/dicts/nl_NL/nl_NL.dic");
+    HunspellDictionary dictionary = loadDictionary("dicts/nl_NL/nl_NL.aff", "dicts/nl_NL/nl_NL.dic");
 
     HunspellStemmer stemmer = new HunspellStemmer(dictionary);
     List<HunspellStemmer.Stem> stems = stemmer.stem("huizen");
