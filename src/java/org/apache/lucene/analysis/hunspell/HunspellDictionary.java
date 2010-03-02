@@ -268,7 +268,14 @@ public class HunspellDictionary {
         wordForm = NOFLAGS;
         entry = line;
       } else {
-        wordForm = new HunspellWord(flagParsingStrategy.parseFlags(line.substring(flagSep + 1)));
+        // note, there can be comments (morph description) after a flag.
+        // we should really look for any whitespace
+        int end = line.indexOf('\t', flagSep);
+        if (end == -1)
+          end = line.length();
+        
+        
+        wordForm = new HunspellWord(flagParsingStrategy.parseFlags(line.substring(flagSep + 1, end)));
         Arrays.sort(wordForm.getFlags());
         entry = line.substring(0, flagSep);
       }
@@ -330,11 +337,12 @@ public class HunspellDictionary {
      * {@inheritDoc}
      */
     public char[] parseFlags(String rawFlags) {
-      String[] rawFlagParts = rawFlags.split(",");
+      String[] rawFlagParts = rawFlags.trim().split(",");
       char[] flags = new char[rawFlagParts.length];
 
       for (int i = 0; i < rawFlagParts.length; i++) {
-        flags[i] = (char) Integer.parseInt(rawFlagParts[i]);
+        // note, removing the trailing X/leading I for nepali... what is the rule here?! 
+        flags[i] = (char) Integer.parseInt(rawFlagParts[i].replaceAll("[^0-9]", ""));
       }
 
       return flags;
