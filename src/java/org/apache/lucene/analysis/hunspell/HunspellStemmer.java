@@ -31,6 +31,8 @@ import java.util.*;
  */
 public class HunspellStemmer {
 
+  private static final int RECURSION_CAP = 2;
+  
   private HunspellDictionary dictionary;
 
   /**
@@ -53,7 +55,7 @@ public class HunspellStemmer {
     if (dictionary.lookupWord(word.toCharArray(), 0, word.length()) != null) {
       stems.add(new Stem(word));
     }
-    stems.addAll(stem(word, null));
+    stems.addAll(stem(word, null, 0));
     return stems;
   }
 
@@ -64,9 +66,10 @@ public class HunspellStemmer {
    *
    * @param word Word to generate the stems for
    * @param flags Flags from a previous stemming step that need to be cross-checked with any affixes in this recursive step
+   * @param recursionDepth Level of recursion this stemming step is at
    * @return List of stems, pr an empty if no stems are found
    */
-  private List<Stem> stem(String word, char[] flags) {
+  private List<Stem> stem(String word, char[] flags, int recursionDepth) {
     char[] array = word.toCharArray();
 
     List<Stem> stems = new ArrayList<Stem>();
@@ -79,7 +82,7 @@ public class HunspellStemmer {
             int deAffixedLength = array.length - suffix.getAppend().length();
             String strippedWord = new StringBuilder().append(array, 0, deAffixedLength).append(suffix.getStrip()).toString();
 
-            List<Stem> stemList = applyAffix(strippedWord, suffix);
+            List<Stem> stemList = applyAffix(strippedWord, suffix, recursionDepth);
             for (Stem stem : stemList) {
               stem.addSuffix(suffix);
             }
@@ -102,7 +105,7 @@ public class HunspellStemmer {
                 .append(array, deAffixedStart, deAffixedLength)
                 .toString();
 
-            List<Stem> stemList = applyAffix(strippedWord, prefix);
+            List<Stem> stemList = applyAffix(strippedWord, prefix, recursionDepth);
             for (Stem stem : stemList) {
               stem.addPrefix(prefix);  
             }
@@ -121,10 +124,11 @@ public class HunspellStemmer {
    *
    * @param strippedWord Word the affix has been removed and the strip added
    * @param affix HunspellAffix representing the affix rule itself
+   * @param recursionDepth Level of recursion this stemming step is at
    * @return List of stems for the word, or an empty list if none are found
    */
   @SuppressWarnings("unchecked")
-  public List<Stem> applyAffix(String strippedWord, HunspellAffix affix) {
+  public List<Stem> applyAffix(String strippedWord, HunspellAffix affix, int recursionDepth) {
     char[] word = strippedWord.toCharArray();
 
     if (!affix.checkCondition(word, 0, word.length)) {
@@ -140,8 +144,8 @@ public class HunspellStemmer {
 
     for (HunspellWord hunspellWord : words) {
       if (hunspellWord.hasFlag(affix.getFlag())) {
-        if (affix.isCrossProduct()) {
-          List<Stem> recursiveStems = stem(strippedWord, affix.getAppendFlags());
+        if (affix.isCrossProduct() && recursionDepth < RECURSION_CAP) {
+          List<Stem> recursiveStems = stem(strippedWord, affix.getAppendFlags(), ++recursionDepth);
           if (!recursiveStems.isEmpty()) {
             stems.addAll(recursiveStems);
           } else {
@@ -249,6 +253,7 @@ public class HunspellStemmer {
   public static void main(String[] args) throws IOException, ParseException {
     if (args.length != 2) {
       System.out.println("usage: HunspellStemmer <affix location> <dic location>");
+      System.exit(1);
     }
 
     InputStream affixInputStream = new FileInputStream(args[0]);
