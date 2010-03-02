@@ -35,8 +35,8 @@ public class HunspellStemFilterFactory extends BaseTokenFilterFactory implements
 
     try {
       this.dictionary = new HunspellDictionary(
-          loader.openResource(dictionaryFile),
-          loader.openResource(affixFile));
+          loader.openResource(affixFile),
+          loader.openResource(dictionaryFile));
     } catch (Exception e) {
       throw new RuntimeException("Unable to load hunspell data! [dictionary=" + dictionaryFile + ",affix=" + affixFile + "]", e);
     }
