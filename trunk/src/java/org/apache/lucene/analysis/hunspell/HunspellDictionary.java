@@ -191,24 +191,36 @@ public class HunspellDictionary {
    * @param affix InputStream for reading the affix file
    * @return Encoding specified in the affix file
    * @throws IOException Can be thrown while reading from the InputStream
-   * @throws ParseException Thrown if the line read from the file does not adhere to the format {@code SET <encoding>}
+   * @throws ParseException Thrown if the first non-empty non-comment line read from the file does not adhere to the format {@code SET <encoding>}
    */
   private String getDictionaryEncoding(InputStream affix) throws IOException, ParseException {
-    StringBuilder encoding = new StringBuilder();
-    int ch;
-    while ((ch = affix.read()) > 0) {
-      if (ch == '\n') {
-        break;
+    final StringBuilder encoding = new StringBuilder();
+    for (;;) {
+      encoding.setLength(0);
+      int ch;
+      while ((ch = affix.read()) >= 0) {
+        if (ch == '\n') {
+          break;
+        }
+        if (ch != '\r') {
+          encoding.append((char)ch);
+        }
       }
-      if (ch != '\r') {
-        encoding.append((char)ch);
+      if (
+          encoding.length() == 0 || encoding.charAt(0) == '#' ||
+          // this test only at the end as ineffective but would allow lines only containing spaces:
+          encoding.toString().trim().length() == 0
+      ) {
+        if (ch < 0)
+          throw new ParseException("Unexspected end of affix file.", 0);
+        continue;
       }
-    }
-    if ("SET ".equals(encoding.substring(0, 4))) {
-      return encoding.substring(4);
-    }
-    else {
-      throw new ParseException("expected SET <encoding>", 0);
+      if ("SET ".equals(encoding.substring(0, 4))) {
+        // cleanup the encoding string, too (whitespace)
+        return encoding.substring(4).trim();
+      }
+      throw new ParseException("The first non-comment line in the affix file must "+
+          "be a 'SET charset', was: '" + encoding +"'", 0);
     }
   }
 
