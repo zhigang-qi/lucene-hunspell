@@ -24,11 +24,18 @@ import org.apache.solr.common.ResourceLoader;
 import org.apache.solr.util.plugin.ResourceLoaderAware;
 
 /**
- * factory for HunspellStemFilter
+ * TokenFilterFactory that creates instances of {@link org.apache.lucene.analysis.hunspell.HunspellStemFilter}.  Provides
+ * configuration for the location of the hunspell dictionary and affix files
  */
 public class HunspellStemFilterFactory extends BaseTokenFilterFactory implements ResourceLoaderAware {
-  private HunspellDictionary dictionary;
   
+  private HunspellDictionary dictionary;
+
+  /**
+   * Loads the hunspell dictionary and affix files defined in the configuration
+   *  
+   * @param loader ResourceLoader used to load the files
+   */
   public void inform(ResourceLoader loader) {
     String dictionaryFile = args.get("dictionary");
     String affixFile = args.get("affix");
@@ -42,7 +49,14 @@ public class HunspellStemFilterFactory extends BaseTokenFilterFactory implements
     }
   }
 
-  public TokenStream create(TokenStream ts) {
-    return new HunspellStemFilter(ts, dictionary);
+  /**
+   * Creates an instance of {@link org.apache.lucene.analysis.hunspell.HunspellStemFilter} that will filter the given
+   * TokenStream
+   *
+   * @param tokenStream TokenStream that will be filtered
+   * @return HunspellStemFilter that filters the TokenStream 
+   */
+  public TokenStream create(TokenStream tokenStream) {
+    return new HunspellStemFilter(tokenStream, dictionary);
   }
 }
