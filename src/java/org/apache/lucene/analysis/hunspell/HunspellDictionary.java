@@ -341,27 +341,31 @@ public class HunspellDictionary {
     }
   }
 
-  // TODO test
+  /**
+   * Implementation of {@link FlagParsingStrategy} that assumes each flag is encoded as two ASCII characters whose codes
+   * must be combined into a single character.
+   *
+   * TODO (rmuir) test
+   */
   private static class DoubleASCIIFlagParsingStrategy extends FlagParsingStrategy {
+
+    /**
+     * {@inheritDoc}
+     */
     public char[] parseFlags(String rawFlags) {
-      if (rawFlags.length() == 0)
+      if (rawFlags.length() == 0) {
         return new char[0];
-      StringBuilder sb = new StringBuilder();
-      for (int i = 0; i < rawFlags.length(); i+=2) {
-        char cookedFlag = (char) ((int)rawFlags.charAt(i) + (int)rawFlags.charAt(i + 1));
-        sb.append(cookedFlag);
       }
-      char flags[] = new char[sb.length()];
-      sb.getChars(0, sb.length(), flags, 0);
+
+      StringBuilder builder = new StringBuilder();
+      for (int i = 0; i < rawFlags.length(); i+=2) {
+        char cookedFlag = (char) ((int) rawFlags.charAt(i) + (int) rawFlags.charAt(i + 1));
+        builder.append(cookedFlag);
+      }
+      
+      char flags[] = new char[builder.length()];
+      builder.getChars(0, builder.length(), flags, 0);
       return flags;
     }
-  }
-
-  // ================================================= Entry Point ===================================================
-
-  public static void main(String args[]) throws Exception {
-    InputStream dic = new FileInputStream("c:/users/rmuir/Downloads/en/en_US.dic");
-    InputStream aff = new FileInputStream("c:/users/rmuir/Downloads/en/en_US.aff");
-    HunspellDictionary hd = new HunspellDictionary(aff, dic);
   }
 }
