@@ -17,7 +17,6 @@ package org.apache.lucene.analysis.hunspell;
  * limitations under the License.
  */
 
-import org.apache.lucene.analysis.CharArrayMap;
 import org.apache.lucene.util.Version;
 
 import java.io.*;
@@ -112,8 +111,8 @@ public class HunspellDictionary {
    * @throws IOException Can be thrown while reading from the InputStream
    */
   private void readAffixFile(InputStream affixStream, CharsetDecoder decoder) throws IOException {
-    prefixes = new CharArrayMap<List<HunspellAffix>>(Version.LUCENE_31, 8, false);
-    suffixes = new CharArrayMap<List<HunspellAffix>>(Version.LUCENE_31, 8, false);
+    prefixes = new CharArrayMap<List<HunspellAffix>>(Version.LUCENE_29, 8, false);
+    suffixes = new CharArrayMap<List<HunspellAffix>>(Version.LUCENE_29, 8, false);
     
     BufferedReader reader = new BufferedReader(new InputStreamReader(affixStream, decoder));
     String line = null;
@@ -257,7 +256,7 @@ public class HunspellDictionary {
     // nocommit, don't create millions of strings.
     String line = reader.readLine(); // first line is number of entries
     int numEntries = Integer.parseInt(line);
-    words = new CharArrayMap<List<HunspellWord>>(Version.LUCENE_31, numEntries, false);
+    words = new CharArrayMap<List<HunspellWord>>(Version.LUCENE_29, numEntries, false);
     // nocommit, the flags themselves can be double-chars (long) or also numeric
     // either way the trick is to encode them as char... but they must be parsed differently
     while ((line = reader.readLine()) != null) {
