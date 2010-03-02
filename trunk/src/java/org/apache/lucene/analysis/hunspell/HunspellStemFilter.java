@@ -27,22 +27,35 @@ import org.apache.lucene.analysis.tokenattributes.PositionIncrementAttribute;
 import org.apache.lucene.analysis.tokenattributes.TermAttribute;
 
 /**
- * Hunspell stemfilter
+ * TokenFilter that uses hunspell affix rules and words to stem tokens.  Since hunspell supports a word having multiple
+ * stems, this filter can emit multiple tokens for each consumed token
  */
 public final class HunspellStemFilter extends TokenFilter {
+  
   private final TermAttribute termAtt = 
     (TermAttribute) addAttribute(TermAttribute.class);
   private final PositionIncrementAttribute posIncAtt =
     (PositionIncrementAttribute) addAttribute(PositionIncrementAttribute.class);
   private final HunspellStemmer stemmer;
+  
   private List<Stem> buffer;
   private State savedState;
-  
+
+  /**
+   * Creates a new HunspellStemFilter that will stem tokens from the given TokenStream using affix rules in the provided
+   * HunspellDictionary
+   *
+   * @param input TokenStream whose tokens will be stemmed
+   * @param dictionary HunspellDictionary containing the affix rules and words that will be used to stem the tokens
+   */
   public HunspellStemFilter(TokenStream input, HunspellDictionary dictionary) {
     super(input);
     this.stemmer = new HunspellStemmer(dictionary); 
   }
-  
+
+  /**
+   * {@inheritDoc}
+   */
   @Override
   public boolean incrementToken() throws IOException {
     if (buffer != null && !buffer.isEmpty()) {
@@ -51,23 +64,29 @@ public final class HunspellStemFilter extends TokenFilter {
       posIncAtt.setPositionIncrement(0);
       termAtt.setTermBuffer(nextStem.getStem());
       return true;
-    } else {
-      if (input.incrementToken()) {
-        buffer = stemmer.stem(termAtt.term());
-        if (buffer.isEmpty()) // we do not know this word, return it unchanged
-          return true;
-        
-        termAtt.setTermBuffer(buffer.remove(0).getStem());
-
-        if (!buffer.isEmpty())
-          savedState = captureState();
-        
-        return true;
-      } else
-        return false;
     }
+
+    if (!input.incrementToken()) {
+      return false;
+    }
+    
+    buffer = stemmer.stem(termAtt.term());
+    if (buffer.isEmpty()) { // we do not know this word, return it unchanged
+      return true;
+    }
+
+    termAtt.setTermBuffer(buffer.remove(0).getStem());
+
+    if (!buffer.isEmpty()) {
+      savedState = captureState();
+    }
+
+    return true;
   }
-  
+
+  /**
+   * {@inheritDoc}
+   */
   @Override
   public void reset() throws IOException {
     super.reset();
