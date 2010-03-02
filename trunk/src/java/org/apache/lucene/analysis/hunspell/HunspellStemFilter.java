@@ -25,6 +25,7 @@ import org.apache.lucene.analysis.TokenStream;
 import org.apache.lucene.analysis.hunspell.HunspellStemmer.Stem;
 import org.apache.lucene.analysis.tokenattributes.PositionIncrementAttribute;
 import org.apache.lucene.analysis.tokenattributes.TermAttribute;
+import org.apache.lucene.util.Version;
 
 /**
  * TokenFilter that uses hunspell affix rules and words to stem tokens.  Since hunspell supports a word having multiple
@@ -40,6 +41,8 @@ public final class HunspellStemFilter extends TokenFilter {
   
   private List<Stem> buffer;
   private State savedState;
+  
+  private final boolean dedup;
 
   /**
    * Creates a new HunspellStemFilter that will stem tokens from the given TokenStream using affix rules in the provided
@@ -49,8 +52,21 @@ public final class HunspellStemFilter extends TokenFilter {
    * @param dictionary HunspellDictionary containing the affix rules and words that will be used to stem the tokens
    */
   public HunspellStemFilter(TokenStream input, HunspellDictionary dictionary) {
+    this(input, dictionary, true);
+  }
+  
+  /**
+   * Creates a new HunspellStemFilter that will stem tokens from the given TokenStream using affix rules in the provided
+   * HunspellDictionary
+   *
+   * @param input TokenStream whose tokens will be stemmed
+   * @param dictionary HunspellDictionary containing the affix rules and words that will be used to stem the tokens
+   * @param dedup true if only unique terms should be output.
+   */
+  public HunspellStemFilter(TokenStream input, HunspellDictionary dictionary, boolean dedup) {
     super(input);
-    this.stemmer = new HunspellStemmer(dictionary); 
+    this.dedup = dedup;
+    this.stemmer = new HunspellStemmer(dictionary);
   }
 
   /**
@@ -65,15 +81,16 @@ public final class HunspellStemFilter extends TokenFilter {
       termAtt.setTermBuffer(nextStem.getStem());
       return true;
     }
-
+    
     if (!input.incrementToken()) {
       return false;
     }
     
-    buffer = stemmer.stem(termAtt.term());
+    buffer = dedup ? stemmer.uniqueStems(termAtt.term()) : stemmer.stem(termAtt.term());
+
     if (buffer.isEmpty()) { // we do not know this word, return it unchanged
       return true;
-    }
+    }     
 
     termAtt.setTermBuffer(buffer.remove(0).getStem());
 

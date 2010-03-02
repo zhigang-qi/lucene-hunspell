@@ -23,6 +23,8 @@ import java.io.InputStream;
 import java.text.ParseException;
 import java.util.*;
 
+import org.apache.lucene.util.Version;
+
 /**
  * HunspellStemmer uses the affix rules declared in the HunspellDictionary to generate one or more stems for a word.  It
  * conforms to the algorithm in the original hunspell algorithm, including recursive suffix stripping.
@@ -56,6 +58,30 @@ public class HunspellStemmer {
       stems.add(new Stem(word));
     }
     stems.addAll(stem(word, null, 0));
+    return stems;
+  }
+  
+  /**
+   * Find the unique stem(s) of the provided word
+   * 
+   * @param word Word to find the stems for
+   * @return List of stems for the word
+   */
+  public List<Stem> uniqueStems(String word) {
+    List<Stem> stems = new ArrayList<Stem>();
+    CharArraySet terms = new CharArraySet(Version.LUCENE_29, 8, false);
+    if (dictionary.lookupWord(word.toCharArray(), 0, word.length()) != null) {
+      stems.add(new Stem(word));
+      terms.add(word);
+    }
+    List<Stem> otherStems = stem(word, null, 0);
+    for (int i = 0; i < otherStems.size(); i++) {
+      Stem s = otherStems.get(i);
+      if (!terms.contains(s.stem)) {
+        stems.add(s);
+        terms.add(s.stem);
+      }
+    }
     return stems;
   }
 
