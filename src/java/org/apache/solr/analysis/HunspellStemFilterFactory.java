@@ -17,6 +17,10 @@ package org.apache.solr.analysis;
  * limitations under the License.
  */
 
+import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.List;
+
 import org.apache.lucene.analysis.TokenStream;
 import org.apache.lucene.analysis.hunspell.HunspellDictionary;
 import org.apache.lucene.analysis.hunspell.HunspellStemFilter;
@@ -37,15 +41,18 @@ public class HunspellStemFilterFactory extends BaseTokenFilterFactory implements
    * @param loader ResourceLoader used to load the files
    */
   public void inform(ResourceLoader loader) {
-    String dictionaryFile = args.get("dictionary");
+    String dictionaryFiles[] = args.get("dictionary").split(",");
     String affixFile = args.get("affix");
 
     try {
+      List<InputStream> dictionaries = new ArrayList<InputStream>();
+      for (String file : dictionaryFiles)
+        dictionaries.add(loader.openResource(file));
       this.dictionary = new HunspellDictionary(
           loader.openResource(affixFile),
-          loader.openResource(dictionaryFile));
+          dictionaries);
     } catch (Exception e) {
-      throw new RuntimeException("Unable to load hunspell data! [dictionary=" + dictionaryFile + ",affix=" + affixFile + "]", e);
+      throw new RuntimeException("Unable to load hunspell data! [dictionary=" + args.get("dictionary") + ",affix=" + affixFile + "]", e);
     }
   }
 
