@@ -36,6 +36,7 @@ public class HunspellStemmer {
   private static final int RECURSION_CAP = 2;
   
   private HunspellDictionary dictionary;
+  private final StringBuilder segment = new StringBuilder();
 
   /**
    * Constructs a new HunspellStemmer which will use the provided HunspellDictionary to create its stems
@@ -164,7 +165,9 @@ public class HunspellStemmer {
    */
   @SuppressWarnings("unchecked")
   public List<Stem> applyAffix(char strippedWord[], int length, HunspellAffix affix, int recursionDepth) {
-    if (!affix.checkCondition(strippedWord, 0, length)) {
+    segment.setLength(0);
+    segment.append(strippedWord, 0, length);
+    if (!affix.checkCondition(segment)) {
       return Collections.EMPTY_LIST;
     }
 
