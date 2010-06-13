@@ -48,7 +48,6 @@ public class HunspellDictionary {
 
   private FlagParsingStrategy flagParsingStrategy = new SimpleFlagParsingStrategy(); // Default flag parsing strategy
 
-
   /**
    * Creates a new HunspellDictionary containing the information read from the provided InputStreams to hunspell affix
    * and dictionary files
@@ -59,10 +58,25 @@ public class HunspellDictionary {
    * @throws ParseException Can be thrown if the content of the files does not meet expected formats
    */
   public HunspellDictionary(InputStream affix, InputStream dictionary) throws IOException, ParseException {
+    this(affix, Arrays.asList(new InputStream[] { dictionary }));
+  }
+
+  /**
+   * Creates a new HunspellDictionary containing the information read from the provided InputStreams to hunspell affix
+   * and dictionary files
+   *
+   * @param affix InputStream for reading the hunspell affix file
+   * @param dictionaries InputStreams for reading the hunspell dictionary file
+   * @throws IOException Can be thrown while reading from the InputStreams
+   * @throws ParseException Can be thrown if the content of the files does not meet expected formats
+   */
+  public HunspellDictionary(InputStream affix, List<InputStream> dictionaries) throws IOException, ParseException {
     String encoding = getDictionaryEncoding(affix);
     CharsetDecoder decoder = getJavaEncoding(encoding);
     readAffixFile(affix, decoder);
-    readDictionaryFile(dictionary, decoder);
+    words = new CharArrayMap<List<HunspellWord>>(Version.LUCENE_29, 65535 /* guess */, false);
+    for (InputStream dictionary : dictionaries)
+      readDictionaryFile(dictionary, decoder);
   }
 
   /**
@@ -268,7 +282,7 @@ public class HunspellDictionary {
     // nocommit, don't create millions of strings.
     String line = reader.readLine(); // first line is number of entries
     int numEntries = Integer.parseInt(line);
-    words = new CharArrayMap<List<HunspellWord>>(Version.LUCENE_29, numEntries, false);
+    
     // nocommit, the flags themselves can be double-chars (long) or also numeric
     // either way the trick is to encode them as char... but they must be parsed differently
     while ((line = reader.readLine()) != null) {
