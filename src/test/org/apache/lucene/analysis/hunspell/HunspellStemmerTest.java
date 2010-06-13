@@ -30,8 +30,8 @@ public class HunspellStemmerTest {
     List<HunspellStemmer.Stem> stems = stemmer.stem("drinkable");
 
     assertEquals(2, stems.size());
-    assertEquals("drinkable", stems.get(0).getStem());
-    assertEquals("drink", stems.get(1).getStem());
+    assertEquals("drinkable", stems.get(0).getStemString());
+    assertEquals("drink", stems.get(1).getStemString());
   }
 
   /**
@@ -48,7 +48,7 @@ public class HunspellStemmerTest {
     List<HunspellStemmer.Stem> stems = stemmer.stem("remove");
 
     assertEquals(1, stems.size());
-    assertEquals("move", stems.get(0).getStem());
+    assertEquals("move", stems.get(0).getStemString());
   }
 
   /**
@@ -65,7 +65,7 @@ public class HunspellStemmerTest {
     List<HunspellStemmer.Stem> stems = stemmer.stem("drinkables");
 
     assertEquals(1, stems.size());
-    assertEquals("drink", stems.get(0).getStem());
+    assertEquals("drink", stems.get(0).getStemString());
   }
 
   /**
@@ -83,12 +83,12 @@ public class HunspellStemmerTest {
     List<HunspellStemmer.Stem> stems = stemmer.stem("fietsen");
 
     assertEquals(2, stems.size());
-    assertEquals("fietsen", stems.get(0).getStem());
-    assertEquals("fiets", stems.get(1).getStem());
+    assertEquals("fietsen", stems.get(0).getStemString());
+    assertEquals("fiets", stems.get(1).getStemString());
 
     stems = stemmer.stem("fiets");
     assertEquals(1, stems.size());
-    assertEquals("fiets", stems.get(0).getStem());
+    assertEquals("fiets", stems.get(0).getStemString());
   }
 
   /**
@@ -106,13 +106,13 @@ public class HunspellStemmerTest {
     List<HunspellStemmer.Stem> stems = stemmer.stem("huizen");
 
     assertEquals(2, stems.size());
-    assertEquals("huizen", stems.get(0).getStem());
-    assertEquals("huis", stems.get(1).getStem());
+    assertEquals("huizen", stems.get(0).getStemString());
+    assertEquals("huis", stems.get(1).getStemString());
 
     stems = stemmer.stem("huis");
     assertEquals(2, stems.size());
-    assertEquals("huis", stems.get(0).getStem());
-    assertEquals("hui", stems.get(1).getStem());
+    assertEquals("huis", stems.get(0).getStemString());
+    assertEquals("hui", stems.get(1).getStemString());
   }
 
   // ================================================= Helper Methods ================================================

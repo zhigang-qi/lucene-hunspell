@@ -25,7 +25,6 @@ import org.apache.lucene.analysis.TokenStream;
 import org.apache.lucene.analysis.hunspell.HunspellStemmer.Stem;
 import org.apache.lucene.analysis.tokenattributes.PositionIncrementAttribute;
 import org.apache.lucene.analysis.tokenattributes.TermAttribute;
-import org.apache.lucene.util.Version;
 
 /**
  * TokenFilter that uses hunspell affix rules and words to stem tokens.  Since hunspell supports a word having multiple
@@ -78,7 +77,7 @@ public final class HunspellStemFilter extends TokenFilter {
       Stem nextStem = buffer.remove(0);
       restoreState(savedState);
       posIncAtt.setPositionIncrement(0);
-      termAtt.setTermBuffer(nextStem.getStem());
+      termAtt.setTermBuffer(nextStem.getStem(), 0, nextStem.getStemLength());
       return true;
     }
     
@@ -86,13 +85,14 @@ public final class HunspellStemFilter extends TokenFilter {
       return false;
     }
     
-    buffer = dedup ? stemmer.uniqueStems(termAtt.term()) : stemmer.stem(termAtt.term());
+    buffer = dedup ? stemmer.uniqueStems(termAtt.termBuffer(), termAtt.termLength()) : stemmer.stem(termAtt.termBuffer(), termAtt.termLength());
 
     if (buffer.isEmpty()) { // we do not know this word, return it unchanged
       return true;
     }     
 
-    termAtt.setTermBuffer(buffer.remove(0).getStem());
+    Stem stem = buffer.remove(0);
+    termAtt.setTermBuffer(stem.getStem(), 0, stem.getStemLength());
 
     if (!buffer.isEmpty()) {
       savedState = captureState();
