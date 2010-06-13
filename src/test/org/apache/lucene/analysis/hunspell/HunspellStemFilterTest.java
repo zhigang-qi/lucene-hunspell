@@ -73,7 +73,7 @@ public class HunspellStemFilterTest extends BaseTokenStreamTestCase {
   String text = "Op grond daarvan proclameert de Algemene Vergadering deze Universele Verklaring van de Rechten van de Mens als het gemeenschappelijk door alle volkeren en alle naties te bereiken ideaal, opdat ieder individu en elk orgaan van de gemeenschap, met deze verklaring voortdurend voor ogen, er naar zal streven door onderwijs en opvoeding de eerbied voor deze rechten en vrijheden te bevorderen, en door vooruitstrevende maatregelen, op nationaal en internationaal terrein, deze rechten algemeen en daadwerkelijk te doen erkennen en toepassen, zowel onder de volkeren van Staten die Lid van de Verenigde Naties zijn, zelf, als onder de volkeren van gebieden, die onder hun jurisdictie staan";
   
   public void testPerformance() throws Exception {
-    int numIterations = 100000000;
+    int numIterations = 10000000;
     Reader r = new StringReader(text);
     long startMS = System.currentTimeMillis();
     for (int i = 0; i < numIterations; i++) {
@@ -83,7 +83,7 @@ public class HunspellStemFilterTest extends BaseTokenStreamTestCase {
         ;
     }
     long endMS = System.currentTimeMillis();
-    double rate = (endMS - startMS);
-    System.err.println("rate: " + rate);
+    long time = endMS - startMS;
+    System.err.println("time: " + time);
   }
 }
