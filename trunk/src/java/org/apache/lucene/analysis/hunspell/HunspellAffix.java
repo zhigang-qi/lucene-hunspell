@@ -43,11 +43,8 @@ public class HunspellAffix {
    * @param length Number of characters from the offset that define the String
    * @return {@code true} if the String meets the condition, {@code false} otherwise
    */
-  public boolean checkCondition(char input[], int offset, int length) {
-    // XXX
-    StringBuilder builder = new StringBuilder();
-    builder.append(input, offset, length);
-    return conditionPattern.matcher(builder).matches();
+  public boolean checkCondition(CharSequence text) {
+    return conditionPattern.matcher(text).matches();
   }
 
   // ================================================= Getters / Setters =============================================
